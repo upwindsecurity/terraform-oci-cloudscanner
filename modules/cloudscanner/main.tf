@@ -1,8 +1,8 @@
 resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
-  compartment_id       = var.compartment_id
-  display_name         = "upwind-cs-asg-${var.scanner_id}"
-  instance_configuration_id  = oci_core_instance_configuration.cloudscanner_instance_configuration.id
-  size                 = var.target_size
+  compartment_id            = var.compartment_id
+  display_name              = "upwind-cs-asg-${var.scanner_id}"
+  instance_configuration_id = oci_core_instance_configuration.cloudscanner_instance_configuration.id
+  size                      = var.target_size
 
   dynamic "placement_configurations" {
     for_each = toset(var.availability_zones)

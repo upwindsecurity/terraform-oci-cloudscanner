@@ -14,9 +14,9 @@ locals {
 resource "oci_kms_vault" "upwind_vault" {
   compartment_id = var.compartment_id
   display_name   = "upwind-vault-${local.common_scanner_name}"
-  freeform_tags = local.freeform_tags
+  freeform_tags  = local.freeform_tags
   //TODO: VIRTUAL_PRIVATE, DEFAULT, EXTERNAL - figure out what to use
-  vault_type     = "DEFAULT"
+  vault_type = "DEFAULT"
 }
 
 # small pause to allow vault management endpoint to become resolvable
@@ -27,8 +27,8 @@ resource "time_sleep" "wait_for_vault" {
 
 ### 2. Create Master Encryption Key
 resource "oci_kms_key" "upwind_key" {
-  compartment_id = var.compartment_id
-  display_name   = "upwind-key-${local.common_scanner_name}"
+  compartment_id      = var.compartment_id
+  display_name        = "upwind-key-${local.common_scanner_name}"
   management_endpoint = oci_kms_vault.upwind_vault.management_endpoint
   key_shape {
     algorithm = "AES"
@@ -43,7 +43,7 @@ resource "oci_vault_secret" "upwind_credentials" {
   vault_id       = oci_kms_vault.upwind_vault.id
   key_id         = oci_kms_key.upwind_key.id
 
-  secret_name    = "upwind-credentials-${local.common_scanner_name}"
+  secret_name = "upwind-credentials-${local.common_scanner_name}"
 
   # OCI requires base64-encoded + JSON versioning block
   secret_content {

@@ -19,7 +19,7 @@ variable "oracle_region" {
 }
 
 variable "auth_token" {
-  type = string
+  type        = string
   description = "Oracle Auth Token used for authenticating against the Oracle Container Registry for image scans"
 }
 
@@ -29,8 +29,8 @@ variable "availability_zones" {
   default     = ["oHrk:US-ASHBURN-AD-1", "oHrk:US-ASHBURN-AD-2", "oHrk:US-ASHBURN-AD-3"]
 }
 
-variable compartment_id {
-  type = string
+variable "compartment_id" {
+  type        = string
   description = "The root compartment where the cloudscanner needs to be deployed"
 
   validation {
@@ -40,17 +40,17 @@ variable compartment_id {
 }
 
 variable "object_namespace" {
-  type = string
+  type        = string
   description = "The object namespace associated with the tenancy"
 }
 
 variable "account_user" {
-  type = string
+  type        = string
   description = "The Service Account User required for image scans"
 }
 
 variable "image_id" {
-  type = string
+  type        = string
   description = "Image OCID to use for CloudScanner VMs"
   //TODO: Add default image_id
   default = "imageId"
@@ -108,14 +108,14 @@ variable "extra_tags" {
 
 variable "shape" {
   description = "Shape of the Cloudscanner worker VM"
-  type = string
-  default = "VM.Standard.E5.Flex"
+  type        = string
+  default     = "VM.Standard.E5.Flex"
 }
 
 variable "boot_volume_size" {
   description = "Boot size for VM disk space"
-  type = number
-  default = 50
+  type        = number
+  default     = 50
 }
 
 resource "random_string" "scanner_suffix" {
