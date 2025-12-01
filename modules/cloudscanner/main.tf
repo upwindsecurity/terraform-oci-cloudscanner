@@ -1,0 +1,92 @@
+resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
+  compartment_id       = var.compartment_id
+  display_name         = "upwind-cs-asg-${var.scanner_id}"
+  instance_configuration_id  = oci_core_instance_configuration.cloudscanner_instance_configuration.id
+  size                 = var.target_size
+
+  dynamic "placement_configurations" {
+    for_each = toset(var.availability_zones)
+    content {
+      availability_domain = placement_configurations.value
+      primary_vnic_subnets {
+        subnet_id = oci_core_subnet.cloudscanner_regional_subnet.id
+      }
+    }
+  }
+
+  freeform_tags = merge(local.freeform_tags, {
+    Name = "upwind-cs-asg-${var.scanner_id}"
+  })
+
+  lifecycle {
+    replace_triggered_by = [null_resource.always_run]
+  }
+}
+
+resource "null_resource" "always_run" {
+  triggers = {
+    always_run = var.public_uri_domain
+  }
+}
+
+resource "oci_core_instance_configuration" "cloudscanner_instance_configuration" {
+  compartment_id = var.compartment_id
+  display_name   = "${var.scanner_id}-cloudscanner-instance-configuration"
+
+  instance_details {
+    instance_type = "compute"
+    launch_details {
+      compartment_id = var.compartment_id
+
+      shape         = var.shape
+      freeform_tags = local.freeform_tags
+      dynamic "shape_config" {
+        for_each = local.is_flexible_shape ? [1] : []
+        content {
+          ocpus         = var.ocpus
+          memory_in_gbs = var.memory_in_gbs
+        }
+      }
+
+      source_details {
+        source_type             = "image"
+        image_id                = var.image_id
+        boot_volume_size_in_gbs = var.boot_volume_size
+      }
+      create_vnic_details {
+        subnet_id        = oci_core_subnet.cloudscanner_regional_subnet.id
+        assign_public_ip = false
+      }
+
+      metadata = {
+        # Startup script equivalent to GCP metadata_startup_script
+        user_data = base64encode(<<-EOF
+          #!/bin/bash
+          echo "Getting upwind credentials..."
+          export UPWIND_CLIENT_ID=${var.upwind_client_id})
+          export UPWIND_CLIENT_SECRET=${var.upwind_client_secret}')
+          export ORACLE_REGION=${var.upwind_region}
+          export UPWIND_CLOUDSCANNER_ID=${var.scanner_id}
+          export DOCKER_USER=${var.account_user}
+          export DOCKER_PASSWORD=${var.auth_token}
+          export TENANCY_NAMESPACe=${var.object_namespace}
+
+          echo "Downloading CloudScanner..."
+          curl -L https://get.${var.public_uri_domain}/cloudscanner.sh -O
+          chmod +x cloudscanner.sh
+          UPWIND_INFRA_REGION=${var.upwind_region} UPWIND_IO=${var.public_uri_domain} bash ./cloudscanner.sh
+          echo "CloudScanner install finished for ${var.scanner_id}..."
+        EOF
+        )
+      }
+    }
+  }
+
+  lifecycle {
+    replace_triggered_by  = [null_resource.always_run]
+    create_before_destroy = true
+  }
+}
+
+
+
