@@ -52,7 +52,7 @@ variable "account_user" {
 variable "image_id" {
   type        = string
   description = "Image OCID to use for CloudScanner VMs"
-  //TODO: Add default image_id
+  # TODO: Add default image_id
   default = "imageId"
 }
 
@@ -76,7 +76,6 @@ variable "scanner_id" {
   }
 }
 
-//TODO: add suffix to this
 variable "upwind_region" {
   type        = string
   description = "Which Upwind region to communicate with. 'us' or 'eu'"

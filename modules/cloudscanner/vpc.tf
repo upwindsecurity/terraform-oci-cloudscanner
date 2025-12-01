@@ -1,16 +1,7 @@
-# VCN - equivalent of AWS VPC
-
-//FOR PRANAY VIS
-// These resources are hard-deleted once deleted, not in soft-delete state
-// SO re-running after deletion should be fine, apart from the dns_label being the same
-// But maybe just add the common name
 
 locals {
   vpc_cidr    = "192.168.0.0/16"
   subnet_cidr = "192.168.1.0/24"
-
-  //TODO: Add regex etc
-  //TODO: Cant use -
   scanner_dns_label = lower(replace("upwindcs${var.oracle_region}", "-", ""))
 }
 

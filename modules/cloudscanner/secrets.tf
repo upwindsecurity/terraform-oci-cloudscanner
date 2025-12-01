@@ -15,7 +15,7 @@ resource "oci_kms_vault" "upwind_vault" {
   compartment_id = var.compartment_id
   display_name   = "upwind-vault-${local.common_scanner_name}"
   freeform_tags  = local.freeform_tags
-  //TODO: VIRTUAL_PRIVATE, DEFAULT, EXTERNAL - figure out what to use
+  # TODO: VIRTUAL_PRIVATE, DEFAULT, EXTERNAL - figure out what to use
   vault_type = "DEFAULT"
 }
 
