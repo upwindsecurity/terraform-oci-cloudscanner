@@ -1,7 +1,7 @@
 
 locals {
-  vpc_cidr    = "192.168.0.0/16"
-  subnet_cidr = "192.168.1.0/24"
+  vpc_cidr          = "192.168.0.0/16"
+  subnet_cidr       = "192.168.1.0/24"
   scanner_dns_label = lower(replace("upwindcs${var.oracle_region}", "-", ""))
 }
 
