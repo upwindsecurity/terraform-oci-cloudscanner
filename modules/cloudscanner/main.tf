@@ -63,8 +63,6 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
         user_data = base64encode(<<-EOF
           #!/bin/bash
           echo "Getting upwind credentials..."
-          export UPWIND_CLIENT_ID=${var.upwind_client_id})
-          export UPWIND_CLIENT_SECRET=${var.upwind_client_secret}')
           export ORACLE_REGION=${var.upwind_region}
           export UPWIND_CLOUDSCANNER_ID=${var.scanner_id}
           export DOCKER_USER=${var.account_user}
