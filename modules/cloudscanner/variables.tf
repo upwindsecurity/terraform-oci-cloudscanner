@@ -1,13 +1,3 @@
-variable "upwind_client_id" {
-  type        = string
-  description = "The client ID used for authentication with the Upwind Authorization Service."
-
-  validation {
-    condition     = length(trimspace(var.upwind_client_id)) > 0
-    error_message = "The variable 'upwind_client_id' must not be empty or contain only whitespace."
-  }
-}
-
 variable "oracle_region" {
   type        = string
   description = "The Oracle region of the deployed resources."
@@ -54,16 +44,6 @@ variable "image_id" {
   description = "Image OCID to use for CloudScanner VMs"
   # TODO: Add default image_id
   default = "imageId"
-}
-
-variable "upwind_client_secret" {
-  type        = string
-  description = "The client secret for authentication with the Upwind Authorization Service."
-
-  validation {
-    condition     = length(trimspace(var.upwind_client_secret)) > 0
-    error_message = "The variable 'upwind_client_secret' must not be empty or contain only whitespace."
-  }
 }
 
 variable "scanner_id" {
