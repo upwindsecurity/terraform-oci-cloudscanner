@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## 1.0.0 (2025-12-03)
+
+### Features
+
+* **AG-4191:** Basic CloudScanner terraform for Oracle ([#1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/1)) ([ecf8c07](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/ecf8c075d75c9a0824a39c723192826050c6e7ff))
+
 ## [1.4.6](https://github.com/upwindsecurity/terraform-module-template/compare/v1.4.5...v1.4.6) (2025-06-16)
 
 ### Bug Fixes
