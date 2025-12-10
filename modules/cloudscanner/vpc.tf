@@ -1,8 +1,10 @@
 
 locals {
-  vpc_cidr          = "192.168.0.0/16"
-  subnet_cidr       = "192.168.1.0/24"
-  scanner_dns_label = lower(replace("upwindcs${var.oracle_region}", "-", ""))
+  vpc_cidr       = "192.168.0.0/16"
+  subnet_cidr    = "192.168.1.0/24"
+  scanner_suffix = replace(var.scanner_id, "ucsc-", "")
+  # DNS label must be 15 characters or less
+  scanner_dns_label = substr(lower(replace("${var.oracle_region}${local.scanner_suffix}", "-", "")), 0, 15)
 }
 
 resource "oci_core_vcn" "cloudscanner_vcn" {

@@ -29,6 +29,24 @@ resource "null_resource" "always_run" {
   }
 }
 
+data "oci_core_images" "cloudscanner" {
+  compartment_id           = var.compartment_id
+  operating_system         = "Canonical Ubuntu"
+  operating_system_version = "22.04"
+  shape                    = var.shape
+  sort_by                  = "TIMECREATED"
+  sort_order               = "DESC"
+
+  filter {
+    name   = "state"
+    values = ["AVAILABLE"]
+  }
+}
+
+locals {
+  image_id = data.oci_core_images.cloudscanner.images[0].id
+}
+
 resource "oci_core_instance_configuration" "cloudscanner_instance_configuration" {
   compartment_id = var.compartment_id
   display_name   = "${var.scanner_id}-cloudscanner-instance-configuration"
@@ -50,7 +68,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
 
       source_details {
         source_type             = "image"
-        image_id                = var.image_id
+        image_id                = local.image_id
         boot_volume_size_in_gbs = var.boot_volume_size
       }
       create_vnic_details {
