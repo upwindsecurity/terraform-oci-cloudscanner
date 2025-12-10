@@ -51,6 +51,10 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   compartment_id = var.compartment_id
   display_name   = "${var.scanner_id}-cloudscanner-instance-configuration"
 
+  depends_on = [
+    oci_core_subnet.cloudscanner_regional_subnet,
+  ]
+
   instance_details {
     instance_type = "compute"
     launch_details {
