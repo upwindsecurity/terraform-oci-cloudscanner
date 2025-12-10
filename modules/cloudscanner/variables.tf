@@ -39,13 +39,6 @@ variable "account_user" {
   description = "The Service Account User required for image scans"
 }
 
-variable "image_id" {
-  type        = string
-  description = "Image OCID to use for CloudScanner VMs"
-  # TODO: Add default image_id
-  default = "imageId"
-}
-
 variable "scanner_id" {
   type        = string
   description = "The Upwind Scanner ID."
