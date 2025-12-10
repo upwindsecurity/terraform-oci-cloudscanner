@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.0.0...v1.0.1) (2025-12-10)
+
+### Bug Fixes
+
+* **AG-0:** get proper image ID for shape, fix dns label ([#3](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/3)) ([d20d787](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/d20d7872e0cabd5d80591f45d99df6b631a8e48c))
+
 ## 1.0.0 (2025-12-03)
 
 ### Features
