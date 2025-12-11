@@ -44,7 +44,8 @@ data "oci_core_images" "cloudscanner" {
 }
 
 locals {
-  image_id = data.oci_core_images.cloudscanner.images[0].id
+  # Ensure we have at least one image available
+  image_id = length(data.oci_core_images.cloudscanner.images) > 0 ? data.oci_core_images.cloudscanner.images[0].id : null
 }
 
 resource "oci_core_instance_configuration" "cloudscanner_instance_configuration" {
@@ -89,7 +90,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
           export UPWIND_CLOUDSCANNER_ID=${var.scanner_id}
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
-          export TENANCY_NAMESPACe=${var.object_namespace}
+          export TENANCY_NAMESPACE=${var.object_namespace}
 
           echo "Downloading CloudScanner..."
           curl -L https://get.${var.public_uri_domain}/cloudscanner.sh -O
@@ -105,6 +106,10 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   lifecycle {
     replace_triggered_by  = [null_resource.always_run]
     create_before_destroy = true
+    precondition {
+      condition     = local.image_id != null
+      error_message = "No matching Ubuntu 22.04 image found for shape ${var.shape} in region ${var.oracle_region}."
+    }
   }
 }
 
