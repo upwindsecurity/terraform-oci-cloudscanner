@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.0.4](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.0.3...v1.0.4) (2025-12-15)
+
+### Bug Fixes
+
+* **AG-0:** oracle auth for instance ([#9](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/9)) ([c4d3f4a](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/c4d3f4ad1a31587621d4e50aae4f257b9ced6261))
+
 ## [1.0.3](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.0.2...v1.0.3) (2025-12-11)
 
 ### Bug Fixes
