@@ -33,7 +33,10 @@ data "oci_core_images" "cloudscanner" {
   compartment_id           = var.compartment_id
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape                    = var.shape
+  # For flexible shapes, don't filter by shape as it may exclude compatible images
+  # Most platform images published after flexible shapes were released are compatible
+  # OCI will validate image compatibility at instance launch time
+  shape                    = local.is_flexible_shape ? null : var.shape
   sort_by                  = "TIMECREATED"
   sort_order               = "DESC"
 
@@ -86,11 +89,15 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
         user_data = base64encode(<<-EOF
           #!/bin/bash
           echo "Getting upwind credentials..."
-          export ORACLE_REGION=${var.upwind_region}
+          export ORACLE_REGION=${var.oracle_region}
           export UPWIND_CLOUDSCANNER_ID=${var.scanner_id}
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
+
+          # OCI authentication for instance principal
+          export OCI_CLI_AUTH=instance_principal
+          export OCI_CLI_REGION=${var.oracle_region}
 
           echo "Downloading CloudScanner..."
           curl -L https://get.${var.public_uri_domain}/cloudscanner.sh -O
