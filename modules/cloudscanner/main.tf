@@ -30,12 +30,17 @@ resource "null_resource" "always_run" {
 }
 
 data "oci_core_images" "cloudscanner" {
-  compartment_id           = var.compartment_id
+  # Platform images are available at the tenancy level, so query from tenancy if provided
+  # Otherwise fall back to the compartment_id
+  compartment_id           = var.tenancy_id != "" ? var.tenancy_id : var.compartment_id
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "22.04"
-  shape                    = var.shape
-  sort_by                  = "TIMECREATED"
-  sort_order               = "DESC"
+  # For flexible shapes, don't filter by shape as it may exclude compatible images
+  # Most platform images published after flexible shapes were released are compatible
+  # OCI will validate image compatibility at instance launch time
+  shape      = local.is_flexible_shape ? null : var.shape
+  sort_by    = "TIMECREATED"
+  sort_order = "DESC"
 
   filter {
     name   = "state"
@@ -45,7 +50,9 @@ data "oci_core_images" "cloudscanner" {
 
 locals {
   # Ensure we have at least one image available
-  image_id = length(data.oci_core_images.cloudscanner.images) > 0 ? data.oci_core_images.cloudscanner.images[0].id : null
+  # Handle null case when no images are found in the region
+  images_list = try(data.oci_core_images.cloudscanner.images, [])
+  image_id    = length(local.images_list) > 0 ? local.images_list[0].id : null
 }
 
 resource "oci_core_instance_configuration" "cloudscanner_instance_configuration" {
@@ -86,11 +93,15 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
         user_data = base64encode(<<-EOF
           #!/bin/bash
           echo "Getting upwind credentials..."
-          export ORACLE_REGION=${var.upwind_region}
+          export ORACLE_REGION=${var.oracle_region}
           export UPWIND_CLOUDSCANNER_ID=${var.scanner_id}
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
+
+          # OCI authentication for instance principal
+          export OCI_CLI_AUTH=instance_principal
+          export OCI_CLI_REGION=${var.oracle_region}
 
           echo "Downloading CloudScanner..."
           curl -L https://get.${var.public_uri_domain}/cloudscanner.sh -O

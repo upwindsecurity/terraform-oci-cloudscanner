@@ -29,6 +29,17 @@ variable "compartment_id" {
   }
 }
 
+variable "tenancy_id" {
+  type        = string
+  description = "The OCI tenancy OCID for querying platform images"
+  default     = ""
+
+  validation {
+    condition     = var.tenancy_id == "" || can(regex("^ocid1\\.tenancy\\..*", var.tenancy_id))
+    error_message = "The tenancy_id must be a valid tenancy OCID starting with 'ocid1.tenancy.'"
+  }
+}
+
 variable "object_namespace" {
   type        = string
   description = "The object namespace associated with the tenancy"
@@ -55,8 +66,8 @@ variable "upwind_region" {
   default     = "us"
 
   validation {
-    condition     = var.upwind_region == "us" || var.upwind_region == "eu"
-    error_message = "upwind_region must be either 'us' or 'eu'."
+    condition     = var.upwind_region == "us" || var.upwind_region == "eu" || var.upwind_region == "me" || var.upwind_region == "pdc"
+    error_message = "upwind_region must be either 'us' or 'eu' or 'me' or 'pdc'."
   }
 }
 
