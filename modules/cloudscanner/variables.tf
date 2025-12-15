@@ -29,6 +29,17 @@ variable "compartment_id" {
   }
 }
 
+variable "tenancy_id" {
+  type        = string
+  description = "The OCI tenancy OCID for querying platform images"
+  default     = ""
+
+  validation {
+    condition     = var.tenancy_id == "" || can(regex("^ocid1\\.tenancy\\..*", var.tenancy_id))
+    error_message = "The tenancy_id must be a valid tenancy OCID starting with 'ocid1.tenancy.'"
+  }
+}
+
 variable "object_namespace" {
   type        = string
   description = "The object namespace associated with the tenancy"
