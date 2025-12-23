@@ -15,8 +15,8 @@ variable "auth_token" {
 
 variable "availability_zones" {
   type        = list(any)
-  description = "The zones within the region that will be used for zone based resources."
-  default     = ["oHrk:US-ASHBURN-AD-1", "oHrk:US-ASHBURN-AD-2", "oHrk:US-ASHBURN-AD-3"]
+  description = "The availability domains within the region that will be used for zone based resources. If not provided or set to default US-ASHBURN values, all availability domains for the region will be used automatically."
+  default     = []
 }
 
 variable "compartment_id" {
@@ -62,12 +62,12 @@ variable "scanner_id" {
 
 variable "upwind_region" {
   type        = string
-  description = "Which Upwind region to communicate with. 'us' or 'eu'"
+  description = "Which Upwind region to communicate with. 'us', 'eu', 'me', 'pdc01'"
   default     = "us"
 
   validation {
-    condition     = var.upwind_region == "us" || var.upwind_region == "eu" || var.upwind_region == "me" || var.upwind_region == "pdc"
-    error_message = "upwind_region must be either 'us' or 'eu' or 'me' or 'pdc'."
+    condition     = var.upwind_region == "us" || var.upwind_region == "eu" || var.upwind_region == "me" || var.upwind_region == "pdc01"
+    error_message = "upwind_region must be either 'us' or 'eu' or 'me' or 'pdc01'."
   }
 }
 
