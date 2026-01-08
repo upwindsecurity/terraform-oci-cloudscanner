@@ -40,6 +40,17 @@ variable "tenancy_id" {
   }
 }
 
+variable "upwind_vault_id" {
+  type        = string
+  description = "OCID of the existing OCI Vault that contains the Upwind OAuth secrets."
+
+  validation {
+    condition     = can(regex("^ocid1\\.vault\\..*", var.upwind_vault_id))
+    error_message = "upwind_vault_id must be a valid vault OCID starting with 'ocid1.vault.'."
+  }
+}
+
+
 variable "object_namespace" {
   type        = string
   description = "The object namespace associated with the tenancy"
@@ -139,5 +150,6 @@ locals {
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
 
-  common_scanner_name = "${var.scanner_id}_${random_string.scanner_suffix.result}"
+  resource_suffix_hyphen = random_string.scanner_suffix.result
+  common_scanner_name    = "${var.scanner_id}_${random_string.scanner_suffix.result}"
 }
