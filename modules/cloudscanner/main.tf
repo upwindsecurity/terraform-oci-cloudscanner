@@ -66,7 +66,7 @@ data "oci_core_shapes" "compatible_shapes" {
 
 locals {
   upwind_vault_id = var.upwind_vault_id
-  
+
   # This must match the suffix used when the vault stack created the secrets.
   resource_suffix_hyphen = var.resource
 
