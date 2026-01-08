@@ -53,26 +53,15 @@ data "oci_core_images" "cloudscanner" {
 # It then discovers the secret OCIDs by secret_name and fetches the CURRENT secret bundle values.
 
 locals {
-  # This must match the suffix used when the vault stack created the vault and secrets.
+    # This must match the suffix used when the vault stack created the secrets.
   resource_suffix_hyphen = var.resource
-  upwind_vault_display_name = format("upwind-vault-%s", local.resource_suffix_hyphen)
 
   upwind_client_id_secret_name     = format("upwind-client-id-%s", local.resource_suffix_hyphen)
   upwind_client_secret_secret_name = format("upwind-client-secret-%s", local.resource_suffix_hyphen)
 }
 
-# Find the vault by display name in this compartment
-data "oci_kms_vaults" "upwind" {
-  compartment_id = var.compartment_id
-
-  filter {
-    name   = "display_name"
-    values = [local.upwind_vault_display_name]
-  }
-}
-
 locals {
-  upwind_vault_id = data.oci_kms_vaults.upwind.vaults[0].id
+    upwind_vault_id = var.upwind_vault_id
 }
 
 # List all secrets in the vault and pick the two we need by secret_name
@@ -159,7 +148,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
-          export UPWIND_CLIENT_ID='${local.upwind_client_id}'
+          export UPWIND_CLIENT_ID=${local.upwind_client_id}
           export UPWIND_CLIENT_SECRET='${local.upwind_client_secret}'
 
           # OCI authentication for instance principal
