@@ -112,14 +112,10 @@ variable "boot_volume_size" {
   default     = 50
 }
 
-variable "scanner_suffix" {
-  description = "suffix used to uniquely identify Cloudscanner resources"
-  type        = string
-
-  validation {
-    condition     = length(trimspace(var.scanner_suffix)) > 0
-    error_message = "scanner_suffix must not be empty."
-  }
+resource "random_string" "scanner_suffix" {
+  length  = 6
+  upper   = false
+  special = false
 }
 
 variable "ocpus" {
@@ -154,5 +150,6 @@ locals {
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
 
-  common_scanner_name = "${var.scanner_id}_${random_string.scanner_suffix.result}"
+  resource_suffix_hyphen = random_string.scanner_suffix.result
+  common_scanner_name    = "${var.scanner_id}_${random_string.scanner_suffix.result}"
 }

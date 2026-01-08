@@ -67,9 +67,6 @@ data "oci_core_shapes" "compatible_shapes" {
 locals {
   upwind_vault_id = var.upwind_vault_id
 
-  # This must match the suffix used when the vault stack created the secrets.
-  resource_suffix_hyphen = var.scanner_suffix
-
   upwind_client_id_secret_name     = format("upwind-client-id-%s", local.resource_suffix_hyphen)
   upwind_client_secret_secret_name = format("upwind-client-secret-%s", local.resource_suffix_hyphen)
 }
