@@ -112,10 +112,14 @@ variable "boot_volume_size" {
   default     = 50
 }
 
-resource "random_string" "scanner_suffix" {
-  length  = 6
-  upper   = false
-  special = false
+variable "scanner_suffix" {
+  description = "suffix used to uniquely identify Cloudscanner resources"
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.scanner_suffix)) > 0
+    error_message = "scanner_suffix must not be empty."
+  }
 }
 
 variable "ocpus" {
