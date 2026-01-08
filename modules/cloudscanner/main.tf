@@ -5,7 +5,7 @@ resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
   size                      = var.target_size
 
   dynamic "placement_configurations" {
-    for_each = toset(var.availability_zones)
+    for_each = toset(local.availability_zones)
     content {
       availability_domain = placement_configurations.value
       primary_vnic_subnets {
@@ -29,6 +29,11 @@ resource "null_resource" "always_run" {
   }
 }
 
+# Get availability domains for the region
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.tenancy_id != "" ? var.tenancy_id : var.compartment_id
+}
+
 data "oci_core_images" "cloudscanner" {
   # Platform images are available at the tenancy level, so query from tenancy if provided
   # Otherwise fall back to the compartment_id
@@ -48,20 +53,25 @@ data "oci_core_images" "cloudscanner" {
   }
 }
 
+# Query shapes compatible with the selected image
+data "oci_core_shapes" "compatible_shapes" {
+  count          = local.image_id != null ? 1 : 0
+  compartment_id = var.compartment_id
+  image_id       = local.image_id
+}
+
 # --- Lookup Upwind OAuth credentials from an existing OCI Vault (made during onboarding) ---
 # This stack derives the vault display name from the same resource suffix used by the vault stack.
 # It then discovers the secret OCIDs by secret_name and fetches the CURRENT secret bundle values.
 
 locals {
-    # This must match the suffix used when the vault stack created the secrets.
+  upwind_vault_id = var.upwind_vault_id
+  
+  # This must match the suffix used when the vault stack created the secrets.
   resource_suffix_hyphen = var.resource
 
   upwind_client_id_secret_name     = format("upwind-client-id-%s", local.resource_suffix_hyphen)
   upwind_client_secret_secret_name = format("upwind-client-secret-%s", local.resource_suffix_hyphen)
-}
-
-locals {
-    upwind_vault_id = var.upwind_vault_id
 }
 
 # List all secrets in the vault and pick the two we need by secret_name
@@ -101,8 +111,71 @@ locals {
 locals {
   # Ensure we have at least one image available
   # Handle null case when no images are found in the region
-  images_list = try(data.oci_core_images.cloudscanner.images, [])
+  # Use coalesce to default to empty list if images is null
+  images_list = coalesce(data.oci_core_images.cloudscanner.images, [])
   image_id    = length(local.images_list) > 0 ? local.images_list[0].id : null
+
+  # Get availability domain names from the data source
+  availability_domain_names = [
+    for ad in data.oci_identity_availability_domains.ads.availability_domains : ad.name
+  ]
+
+  # Use provided availability_zones if specified, otherwise use all availability domains from the region
+  # This ensures region-agnostic deployment - availability domains are automatically discovered
+  availability_zones = length(var.availability_zones) > 0 ? (
+    var.availability_zones
+    ) : (
+    local.availability_domain_names
+  )
+
+  # Get list of compatible shapes for the image
+  compatible_shapes_list = local.image_id != null && length(data.oci_core_shapes.compatible_shapes) > 0 ? (
+    coalesce(data.oci_core_shapes.compatible_shapes[0].shapes, [])
+  ) : []
+
+  # Extract shape names from compatible shapes
+  compatible_shape_names = [
+    for shape in local.compatible_shapes_list : shape.name
+  ]
+
+  # Preferred flexible shapes in order of preference (most powerful first)
+  preferred_flexible_shapes = [
+    "VM.Standard.E5.Flex",
+    "VM.Standard.E4.Flex",
+    "VM.Standard.E3.Flex",
+    "VM.Standard.E2.Flex",
+    "VM.Standard.A1.Flex"
+  ]
+
+  # Select a compatible shape:
+  # 1. If the provided shape is compatible, use it
+  # 2. For flexible shapes, if provided shape is not compatible, try to find a compatible flexible shape
+  # 3. For non-flexible shapes, use provided shape (will fail at apply if incompatible with clearer error)
+  selected_shape = local.is_flexible_shape ? (
+    # For flexible shapes, check if provided shape is compatible
+    contains(local.compatible_shape_names, var.shape) ? var.shape : (
+      # Try to find a compatible flexible shape from preferred list
+      length([
+        for preferred in local.preferred_flexible_shapes :
+        preferred if contains(local.compatible_shape_names, preferred)
+        ]) > 0 ? [
+        for preferred in local.preferred_flexible_shapes :
+        preferred if contains(local.compatible_shape_names, preferred)
+        ][0] : (
+        # If no preferred shape is compatible, try any compatible flexible shape
+        length([
+          for shape_name in local.compatible_shape_names :
+          shape_name if contains(split(".", lower(shape_name)), "flex")
+          ]) > 0 ? [
+          for shape_name in local.compatible_shape_names :
+          shape_name if contains(split(".", lower(shape_name)), "flex")
+        ][0] : var.shape
+      )
+    )
+    ) : (
+    # For non-flexible shapes, use provided shape
+    var.shape
+  )
 }
 
 resource "oci_core_instance_configuration" "cloudscanner_instance_configuration" {
@@ -118,7 +191,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
     launch_details {
       compartment_id = var.compartment_id
 
-      shape         = var.shape
+      shape         = local.selected_shape
       freeform_tags = local.freeform_tags
       dynamic "shape_config" {
         for_each = local.is_flexible_shape ? [1] : []
@@ -172,6 +245,14 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
     precondition {
       condition     = local.image_id != null
       error_message = "No matching Ubuntu 22.04 image found for shape ${var.shape} in region ${var.oracle_region}."
+    }
+    precondition {
+      condition     = local.image_id == null || length(local.compatible_shapes_list) > 0
+      error_message = "No compatible shapes found for image ${local.image_id} in region ${var.oracle_region}. Requested shape: ${var.shape}. Available compatible shapes: ${join(", ", local.compatible_shape_names)}"
+    }
+    precondition {
+      condition     = local.image_id == null || contains(local.compatible_shape_names, local.selected_shape)
+      error_message = "Shape ${var.shape} is not compatible with the selected image in region ${var.oracle_region}. Selected compatible shape: ${local.selected_shape}. Available compatible shapes: ${join(", ", local.compatible_shape_names)}"
     }
   }
 }
