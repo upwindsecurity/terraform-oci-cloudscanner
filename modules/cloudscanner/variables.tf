@@ -71,6 +71,16 @@ variable "scanner_id" {
   }
 }
 
+variable "upwind_org_id" {
+  type        = string
+  description = "The Upwind Organization ID (used to construct vault secret names). The last 5 characters are used as a prefix to match vault secrets."
+
+  validation {
+    condition     = length(trimspace(var.upwind_org_id)) > 0
+    error_message = "The variable 'upwind_org_id' must not be empty or contain only whitespace."
+  }
+}
+
 variable "upwind_region" {
   type        = string
   description = "Which Upwind region to communicate with. 'us', 'eu', 'me', 'pdc01'"
@@ -112,12 +122,6 @@ variable "boot_volume_size" {
   default     = 50
 }
 
-resource "random_string" "scanner_suffix" {
-  length  = 6
-  upper   = false
-  special = false
-}
-
 variable "ocpus" {
   description = "Number of OCPUs for flexible shapes"
   type        = number
@@ -150,6 +154,10 @@ locals {
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
 
-  resource_suffix_hyphen = random_string.scanner_suffix.result
-  common_scanner_name    = "${var.scanner_id}_${random_string.scanner_suffix.result}"
+  # Extract last 5 characters of org ID and convert to lowercase for vault secret naming
+  org_id_suffix = lower(substr(var.upwind_org_id, length(var.upwind_org_id) - 5, 5))
+
+  # Construct the vault secret prefix
+  # The full secret name will be like: upwind-client-id-cc7a2-<8chars>
+  resource_suffix_hyphen = local.org_id_suffix
 }
