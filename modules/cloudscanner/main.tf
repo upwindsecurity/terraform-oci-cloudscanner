@@ -67,42 +67,45 @@ data "oci_core_shapes" "compatible_shapes" {
 locals {
   upwind_vault_id = var.upwind_vault_id
 
-  upwind_client_id_secret_name     = format("upwind-client-id-%s", local.resource_suffix_hyphen)
-  upwind_client_secret_secret_name = format("upwind-client-secret-%s", local.resource_suffix_hyphen)
+  # Construct the vault secret name prefix patterns to match (without the 8-char suffix)
+  # Examples: "upwind-client-id-cc7a2-" will match "upwind-client-id-cc7a2-kmc106ph"
+  upwind_scanner_client_id_prefix     = format("upwind-scanner-client-id-%s-", local.resource_suffix_hyphen)
+  upwind_scanner_client_secret_prefix = format("upwind-scanner-client-secret-%s-", local.resource_suffix_hyphen)
 }
 
-# List all secrets in the vault and pick the two we need by secret_name
+# List all secrets in the vault and pick the two we need by secret_name prefix
 data "oci_vault_secrets" "upwind" {
   compartment_id = var.compartment_id
   vault_id       = local.upwind_vault_id
 }
 
 locals {
-  upwind_client_id_secret_ocid = one([
+  # Find secrets that start with the prefix pattern
+  upwind_scanner_client_id_secret_ocid = one([
     for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if s.secret_name == local.upwind_client_id_secret_name
+    s.id if startswith(s.secret_name, local.upwind_scanner_client_id_prefix)
   ])
 
-  upwind_client_secret_secret_ocid = one([
+  upwind_scanner_client_secret_secret_ocid = one([
     for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if s.secret_name == local.upwind_client_secret_secret_name
+    s.id if startswith(s.secret_name, local.upwind_scanner_client_secret_prefix)
   ])
 }
 
-# Fetch values into locals.
-data "oci_secrets_secretbundle" "upwind_client_id" {
-  secret_id = local.upwind_client_id_secret_ocid
+# Fetch secret bundle values
+data "oci_secrets_secretbundle" "upwind_scanner_client_id" {
+  secret_id = local.upwind_scanner_client_id_secret_ocid
   stage     = "CURRENT"
 }
 
-data "oci_secrets_secretbundle" "upwind_client_secret" {
-  secret_id = local.upwind_client_secret_secret_ocid
+data "oci_secrets_secretbundle" "upwind_scanner_client_secret" {
+  secret_id = local.upwind_scanner_client_secret_secret_ocid
   stage     = "CURRENT"
 }
 
 locals {
-  upwind_client_id     = base64decode(data.oci_secrets_secretbundle.upwind_client_id.secret_bundle_content[0].content)
-  upwind_client_secret = base64decode(data.oci_secrets_secretbundle.upwind_client_secret.secret_bundle_content[0].content)
+  upwind_scanner_client_id     = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_id.secret_bundle_content[0].content)
+  upwind_scanner_client_secret = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_secret.secret_bundle_content[0].content)
 }
 
 locals {
@@ -218,8 +221,8 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
-          export UPWIND_CLIENT_ID=${local.upwind_client_id}
-          export UPWIND_CLIENT_SECRET='${local.upwind_client_secret}'
+          export UPWIND_CLIENT_ID=${local.upwind_scanner_client_id}
+          export UPWIND_CLIENT_SECRET='${local.upwind_scanner_client_secret}'
 
           # OCI authentication for instance principal
           export OCI_CLI_AUTH=instance_principal

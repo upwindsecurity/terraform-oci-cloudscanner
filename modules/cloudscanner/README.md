@@ -25,35 +25,42 @@ No modules.
 ## Resources
 Key resources created by this module:
 
-- `oci_core_vcn.cloudscanner_vcn`
-- `oci_core_subnet.cloudscanner_regional_subnet`
-- `oci_core_route_table.cloudscanner_route_tables`
-- `oci_core_nat_gateway.cloudscanner_nat`
-- `oci_core_security_list.cloudscanner_security_list`
-- `oci_core_instance_configuration.cloudscanner_instance_configuration`
-- `oci_core_instance_pool.cloudscanner_instance_pool`
-- `oci_kms_vault.upwind_vault`
-- `oci_kms_key.upwind_key`
-- `oci_vault_secret.upwind_credentials`
-- `random_string.scanner_suffix`
-- `time_sleep.wait_for_vault`
-- `null_resource.always_run`
+- `oci_core_vcn.cloudscanner_vcn` - Virtual Cloud Network
+- `oci_core_subnet.cloudscanner_regional_subnet` - Regional subnet
+- `oci_core_route_table.cloudscanner_route_tables` - Route table with NAT gateway route
+- `oci_core_nat_gateway.cloudscanner_nat` - NAT gateway for private outbound traffic
+- `oci_core_security_list.cloudscanner_security_list` - Security list (firewall rules)
+- `oci_core_instance_configuration.cloudscanner_instance_configuration` - Instance configuration
+- `oci_core_instance_pool.cloudscanner_instance_pool` - Auto-scaling instance pool
+- `null_resource.always_run` - Trigger for lifecycle management
+
+## Vault Secret Naming
+
+This module automatically discovers secrets in the OCI Vault specified by `upwind_vault_id` by matching on a prefix pattern.
+
+The module looks for secrets with names starting with:
+- `upwind-client-id-<last5chars>-*` - Upwind OAuth client ID
+- `upwind-client-secret-<last5chars>-*` - Upwind OAuth client secret
+
+Where `<last5chars>` are the last 5 characters of your `upwind_org_id` (converted to lowercase).
+
+The 8-character suffix after the last 5 characters can be any value - the module will automatically find and use the matching secrets.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------:|:-------:|:--------:|
-| `upwind_client_id` | The client ID used for authentication with the Upwind Authorization Service. | `string` | n/a | yes |
 | `oracle_region` | The Oracle region of the deployed resources. | `string` | n/a | yes |
 | `auth_token` | Oracle Auth Token used for authenticating against OCR for image scans. | `string` | n/a | yes |
-| `availability_zones` | The zones within the region that will be used. | `list(any)` | `["oHrk:US-ASHBURN-AD-1","oHrk:US-ASHBURN-AD-2","oHrk:US-ASHBURN-AD-3"]` | no |
+| `availability_zones` | The zones within the region that will be used. If not provided, all availability domains in the region will be used. | `list(any)` | `[]` | no |
 | `compartment_id` | The root compartment where CloudScanner is deployed. | `string` | n/a | yes |
+| `tenancy_id` | The OCI tenancy OCID for querying platform images. If not provided, compartment_id will be used. | `string` | `""` | no |
+| `upwind_vault_id` | OCID of the existing OCI Vault that contains the Upwind OAuth secrets. | `string` | n/a | yes |
 | `object_namespace` | The object namespace associated with the tenancy. | `string` | n/a | yes |
 | `account_user` | The Service Account User required for image scans. | `string` | n/a | yes |
-| `image_id` | Image OCID to use for CloudScanner VMs. | `string` | `imageId` | no |
-| `upwind_client_secret` | The client secret for authentication with Upwind. | `string` | n/a | yes |
 | `scanner_id` | The Upwind Scanner ID. | `string` | n/a | yes |
-| `upwind_region` | Which Upwind region to communicate with (`us` or `eu`). | `string` | `us` | no |
+| `upwind_org_id` | The Upwind Organization ID. The last 5 characters (lowercase) are used as a prefix to match vault secrets. | `string` | n/a | yes |
+| `upwind_region` | Which Upwind region to communicate with: `us`, `eu`, `me`, or `pdc01`. | `string` | `us` | no |
 | `target_size` | Target size of the instance pool. | `number` | `10` | no |
 | `public_uri_domain` | The public URI domain. | `string` | `upwind.io` | no |
 | `extra_tags` | Map of tags applied to resources. | `map(string)` | `{}` | no |

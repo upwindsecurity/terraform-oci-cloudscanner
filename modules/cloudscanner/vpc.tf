@@ -11,7 +11,7 @@ resource "oci_core_vcn" "cloudscanner_vcn" {
   compartment_id = var.compartment_id
   cidr_blocks    = [local.vpc_cidr]
 
-  display_name = "${local.common_scanner_name}-VCN"
+  display_name = "${var.scanner_id}-VCN"
 
   freeform_tags = local.freeform_tags
   dns_label     = local.scanner_dns_label
@@ -22,7 +22,7 @@ resource "oci_core_subnet" "cloudscanner_regional_subnet" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.cloudscanner_vcn.id
   cidr_block     = local.subnet_cidr
-  display_name   = "${local.common_scanner_name}-RegionalSubnet"
+  display_name   = "${var.scanner_id}-RegionalSubnet"
 
   prohibit_public_ip_on_vnic = true
   dns_label                  = local.scanner_dns_label
@@ -44,7 +44,7 @@ resource "oci_core_route_table" "cloudscanner_route_tables" {
   }
 
   freeform_tags = local.freeform_tags
-  display_name  = "${local.common_scanner_name}-CoreRouteTable"
+  display_name  = "${var.scanner_id}-CoreRouteTable"
 }
 
 # NAT Gateway - for private outbound traffic
@@ -54,7 +54,7 @@ resource "oci_core_nat_gateway" "cloudscanner_nat" {
   vcn_id         = oci_core_vcn.cloudscanner_vcn.id
 
   freeform_tags = local.freeform_tags
-  display_name  = "${local.common_scanner_name}-NATGateway"
+  display_name  = "${var.scanner_id}-NATGateway"
 }
 
 # Security List - AWS SG rules
@@ -62,7 +62,7 @@ resource "oci_core_nat_gateway" "cloudscanner_nat" {
 resource "oci_core_security_list" "cloudscanner_security_list" {
   compartment_id = var.compartment_id
   vcn_id         = oci_core_vcn.cloudscanner_vcn.id
-  display_name   = "${local.common_scanner_name}-SecurityList"
+  display_name   = "${var.scanner_id}-SecurityList"
 
   # Allow all traffic inside VCN
   ingress_security_rules {
