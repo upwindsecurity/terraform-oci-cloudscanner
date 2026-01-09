@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.1.2](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.1.1...v1.1.2) (2026-01-09)
+
+### Bug Fixes
+
+* **AG-0:** use deterministic secret naming, use scanner secrets ([#16](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/16)) ([b4e48ad](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/b4e48ade45caf5e8bf885e32c18b275e5cb1e43f))
+
 ## [1.1.1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.1.0...v1.1.1) (2026-01-08)
 
 ### Bug Fixes
