@@ -40,16 +40,27 @@ variable "tenancy_id" {
   }
 }
 
-variable "upwind_vault_id" {
+variable "scanner_client_id" {
   type        = string
-  description = "OCID of the existing OCI Vault that contains the Upwind OAuth secrets."
+  description = "The Upwind Scanner OAuth Client ID."
+  sensitive   = true
 
   validation {
-    condition     = can(regex("^ocid1\\.vault\\..*", var.upwind_vault_id))
-    error_message = "upwind_vault_id must be a valid vault OCID starting with 'ocid1.vault.'."
+    condition     = length(trimspace(var.scanner_client_id)) > 0
+    error_message = "The variable 'scanner_client_id' must not be empty or contain only whitespace."
   }
 }
 
+variable "scanner_client_secret" {
+  type        = string
+  description = "The Upwind Scanner OAuth Client Secret."
+  sensitive   = true
+
+  validation {
+    condition     = length(trimspace(var.scanner_client_secret)) > 0
+    error_message = "The variable 'scanner_client_secret' must not be empty or contain only whitespace."
+  }
+}
 
 variable "object_namespace" {
   type        = string
@@ -68,16 +79,6 @@ variable "scanner_id" {
   validation {
     condition     = length(trimspace(var.scanner_id)) > 0
     error_message = "The variable 'scanner_id' must not be empty or contain only whitespace."
-  }
-}
-
-variable "upwind_org_id" {
-  type        = string
-  description = "The Upwind Organization ID (used to construct vault secret names). The last 5 characters are used as a prefix to match vault secrets."
-
-  validation {
-    condition     = length(trimspace(var.upwind_org_id)) > 0
-    error_message = "The variable 'upwind_org_id' must not be empty or contain only whitespace."
   }
 }
 
@@ -153,11 +154,4 @@ locals {
   is_flexible_shape = contains(split(".", lower(var.shape)), "flex")
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
-
-  # Extract last 5 characters of org ID and convert to lowercase for vault secret naming
-  org_id_suffix = lower(substr(var.upwind_org_id, length(var.upwind_org_id) - 5, 5))
-
-  # Construct the vault secret prefix
-  # The full secret name will be like: upwind-client-id-cc7a2-<8chars>
-  resource_suffix_hyphen = local.org_id_suffix
 }

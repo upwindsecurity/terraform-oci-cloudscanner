@@ -39,10 +39,15 @@ Key resources created by this module:
 This module automatically discovers secrets in the OCI Vault specified by `upwind_vault_id` by matching on a prefix pattern.
 
 The module looks for secrets with names starting with:
-- `upwind-client-id-<last5chars>-*` - Upwind OAuth client ID
-- `upwind-client-secret-<last5chars>-*` - Upwind OAuth client secret
+- `upwind-scanner-client-id-<last5chars>-*` - Upwind OAuth client ID
+- `upwind-scanner-client-secret-<last5chars>-*` - Upwind OAuth client secret
 
 Where `<last5chars>` are the last 5 characters of your `upwind_org_id` (converted to lowercase).
+
+**Example:** If `upwind_org_id = "myorg-cc7a2"` (or any value ending in `cc7a2`), the module will match:
+- `upwind-scanner-client-id-cc7a2-kmc106ph` ✓
+- `upwind-scanner-client-id-cc7a2-abc12345` ✓
+- `upwind-scanner-client-secret-cc7a2-kmc106ph` ✓
 
 The 8-character suffix after the last 5 characters can be any value - the module will automatically find and use the matching secrets.
 
