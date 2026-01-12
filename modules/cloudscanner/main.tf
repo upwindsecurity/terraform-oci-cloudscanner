@@ -60,54 +60,6 @@ data "oci_core_shapes" "compatible_shapes" {
   image_id       = local.image_id
 }
 
-# --- Lookup Upwind OAuth credentials from an existing OCI Vault (made during onboarding) ---
-# This stack derives the vault display name from the same resource suffix used by the vault stack.
-# It then discovers the secret OCIDs by secret_name and fetches the CURRENT secret bundle values.
-
-locals {
-  upwind_vault_id = var.upwind_vault_id
-
-  # Construct the vault secret name prefix patterns to match (without the 8-char suffix)
-  # Examples: "upwind-client-id-cc7a2-" will match "upwind-client-id-cc7a2-kmc106ph"
-  upwind_scanner_client_id_prefix     = format("upwind-scanner-client-id-%s-", local.resource_suffix_hyphen)
-  upwind_scanner_client_secret_prefix = format("upwind-scanner-client-secret-%s-", local.resource_suffix_hyphen)
-}
-
-# List all secrets in the vault and pick the two we need by secret_name prefix
-data "oci_vault_secrets" "upwind" {
-  compartment_id = var.compartment_id
-  vault_id       = local.upwind_vault_id
-}
-
-locals {
-  # Find secrets that start with the prefix pattern
-  upwind_scanner_client_id_secret_ocid = one([
-    for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if startswith(s.secret_name, local.upwind_scanner_client_id_prefix)
-  ])
-
-  upwind_scanner_client_secret_secret_ocid = one([
-    for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if startswith(s.secret_name, local.upwind_scanner_client_secret_prefix)
-  ])
-}
-
-# Fetch secret bundle values
-data "oci_secrets_secretbundle" "upwind_scanner_client_id" {
-  secret_id = local.upwind_scanner_client_id_secret_ocid
-  stage     = "CURRENT"
-}
-
-data "oci_secrets_secretbundle" "upwind_scanner_client_secret" {
-  secret_id = local.upwind_scanner_client_secret_secret_ocid
-  stage     = "CURRENT"
-}
-
-locals {
-  upwind_scanner_client_id     = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_id.secret_bundle_content[0].content)
-  upwind_scanner_client_secret = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_secret.secret_bundle_content[0].content)
-}
-
 locals {
   # Ensure we have at least one image available
   # Handle null case when no images are found in the region
@@ -221,8 +173,8 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
           export DOCKER_USER=${var.account_user}
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
-          export UPWIND_CLIENT_ID=${local.upwind_scanner_client_id}
-          export UPWIND_CLIENT_SECRET='${local.upwind_scanner_client_secret}'
+          export UPWIND_CLIENT_ID=${var.scanner_client_id}
+          export UPWIND_CLIENT_SECRET='${var.scanner_client_secret}'
 
           # OCI authentication for instance principal
           export OCI_CLI_AUTH=instance_principal
