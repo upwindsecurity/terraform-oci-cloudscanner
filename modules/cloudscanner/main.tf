@@ -60,25 +60,13 @@ data "oci_core_shapes" "compatible_shapes" {
   image_id       = local.image_id
 }
 
-# --- Lookup Upwind OAuth credentials from secrets in the home region vault ---
-# The secret OCIDs are passed as variables because the vault may not be accessible
-# from the deployment region. The oci_secrets_secretbundle data source can access
-# secrets across regions using the secret OCID.
-
-# Fetch secret bundle values directly using provided secret OCIDs
-data "oci_secrets_secretbundle" "upwind_scanner_client_id" {
-  secret_id = var.upwind_scanner_client_id_ocid
-  stage     = "CURRENT"
-}
-
-data "oci_secrets_secretbundle" "upwind_scanner_client_secret" {
-  secret_id = var.upwind_scanner_client_secret_ocid
-  stage     = "CURRENT"
-}
+# --- Upwind OAuth credentials from secrets in the home region vault ---
+# The secret values are passed as variables because secrets may not be accessible
+# from the deployment region. The values are fetched client-side before Terraform runs.
 
 locals {
-  upwind_scanner_client_id     = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_id.secret_bundle_content[0].content)
-  upwind_scanner_client_secret = base64decode(data.oci_secrets_secretbundle.upwind_scanner_client_secret.secret_bundle_content[0].content)
+  upwind_scanner_client_id     = var.upwind_scanner_client_id
+  upwind_scanner_client_secret = var.upwind_scanner_client_secret
 }
 
 locals {
@@ -195,7 +183,8 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
           export DOCKER_PASSWORD=${var.auth_token}
           export TENANCY_NAMESPACE=${var.object_namespace}
           export UPWIND_CLIENT_ID=${local.upwind_scanner_client_id}
-          export UPWIND_CLIENT_SECRET='${local.upwind_scanner_client_secret}'
+          export UPWIND_CLIENT_SECRET=${local.upwind_scanner_client_secret}
+          export UPWIND_IO=${var.public_uri_domain}
 
           # OCI authentication for instance principal
           export OCI_CLI_AUTH=instance_principal

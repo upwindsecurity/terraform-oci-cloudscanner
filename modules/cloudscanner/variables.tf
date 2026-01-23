@@ -40,23 +40,25 @@ variable "tenancy_id" {
   }
 }
 
-variable "upwind_scanner_client_id_ocid" {
+variable "upwind_scanner_client_id" {
   type        = string
-  description = "OCID of the secret containing the Upwind scanner client ID (from home region vault). Required because vault may not be accessible from deployment region."
+  description = "Upwind scanner client ID value (fetched from home region vault). Required because secrets may not be accessible from deployment region."
+  sensitive   = true
 
   validation {
-    condition     = can(regex("^ocid1\\.vaultsecret\\..*", var.upwind_scanner_client_id_ocid))
-    error_message = "upwind_scanner_client_id_ocid must be a valid secret OCID starting with 'ocid1.vaultsecret.'."
+    condition     = length(trimspace(var.upwind_scanner_client_id)) > 0
+    error_message = "upwind_scanner_client_id must not be empty."
   }
 }
 
-variable "upwind_scanner_client_secret_ocid" {
+variable "upwind_scanner_client_secret" {
   type        = string
-  description = "OCID of the secret containing the Upwind scanner client secret (from home region vault). Required because vault may not be accessible from deployment region."
+  description = "Upwind scanner client secret value (fetched from home region vault). Required because secrets may not be accessible from deployment region."
+  sensitive   = true
 
   validation {
-    condition     = can(regex("^ocid1\\.vaultsecret\\..*", var.upwind_scanner_client_secret_ocid))
-    error_message = "upwind_scanner_client_secret_ocid must be a valid secret OCID starting with 'ocid1.vaultsecret.'."
+    condition     = length(trimspace(var.upwind_scanner_client_secret)) > 0
+    error_message = "upwind_scanner_client_secret must not be empty."
   }
 }
 
