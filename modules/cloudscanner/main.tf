@@ -60,46 +60,19 @@ data "oci_core_shapes" "compatible_shapes" {
   image_id       = local.image_id
 }
 
-# --- Lookup Upwind OAuth credentials from an existing OCI Vault (made during onboarding) ---
-# This stack derives the vault display name from the same resource suffix used by the vault stack.
-# It then discovers the secret OCIDs by secret_name and fetches the CURRENT secret bundle values.
+# --- Lookup Upwind OAuth credentials from secrets in the home region vault ---
+# The secret OCIDs are passed as variables because the vault may not be accessible
+# from the deployment region. The oci_secrets_secretbundle data source can access
+# secrets across regions using the secret OCID.
 
-locals {
-  upwind_vault_id = var.upwind_vault_id
-
-  # Construct the vault secret name prefix patterns to match (without the 8-char suffix)
-  # Examples: "upwind-client-id-cc7a2-" will match "upwind-client-id-cc7a2-kmc106ph"
-  upwind_scanner_client_id_prefix     = format("upwind-scanner-client-id-%s-", local.resource_suffix_hyphen)
-  upwind_scanner_client_secret_prefix = format("upwind-scanner-client-secret-%s-", local.resource_suffix_hyphen)
-}
-
-# List all secrets in the vault and pick the two we need by secret_name prefix
-data "oci_vault_secrets" "upwind" {
-  compartment_id = var.compartment_id
-  vault_id       = local.upwind_vault_id
-}
-
-locals {
-  # Find secrets that start with the prefix pattern
-  upwind_scanner_client_id_secret_ocid = one([
-    for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if startswith(s.secret_name, local.upwind_scanner_client_id_prefix)
-  ])
-
-  upwind_scanner_client_secret_secret_ocid = one([
-    for s in data.oci_vault_secrets.upwind.secrets :
-    s.id if startswith(s.secret_name, local.upwind_scanner_client_secret_prefix)
-  ])
-}
-
-# Fetch secret bundle values
+# Fetch secret bundle values directly using provided secret OCIDs
 data "oci_secrets_secretbundle" "upwind_scanner_client_id" {
-  secret_id = local.upwind_scanner_client_id_secret_ocid
+  secret_id = var.upwind_scanner_client_id_ocid
   stage     = "CURRENT"
 }
 
 data "oci_secrets_secretbundle" "upwind_scanner_client_secret" {
-  secret_id = local.upwind_scanner_client_secret_secret_ocid
+  secret_id = var.upwind_scanner_client_secret_ocid
   stage     = "CURRENT"
 }
 

@@ -50,6 +50,25 @@ variable "upwind_vault_id" {
   }
 }
 
+variable "upwind_scanner_client_id_ocid" {
+  type        = string
+  description = "OCID of the secret containing the Upwind scanner client ID (from home region vault). Required because vault may not be accessible from deployment region."
+
+  validation {
+    condition     = can(regex("^ocid1\\.vaultsecret\\..*", var.upwind_scanner_client_id_ocid))
+    error_message = "upwind_scanner_client_id_ocid must be a valid secret OCID starting with 'ocid1.vaultsecret.'."
+  }
+}
+
+variable "upwind_scanner_client_secret_ocid" {
+  type        = string
+  description = "OCID of the secret containing the Upwind scanner client secret (from home region vault). Required because vault may not be accessible from deployment region."
+
+  validation {
+    condition     = can(regex("^ocid1\\.vaultsecret\\..*", var.upwind_scanner_client_secret_ocid))
+    error_message = "upwind_scanner_client_secret_ocid must be a valid secret OCID starting with 'ocid1.vaultsecret.'."
+  }
+}
 
 variable "object_namespace" {
   type        = string
@@ -153,11 +172,4 @@ locals {
   is_flexible_shape = contains(split(".", lower(var.shape)), "flex")
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
-
-  # Extract last 5 characters of org ID and convert to lowercase for vault secret naming
-  org_id_suffix = lower(substr(var.upwind_org_id, length(var.upwind_org_id) - 5, 5))
-
-  # Construct the vault secret prefix
-  # The full secret name will be like: upwind-client-id-cc7a2-<8chars>
-  resource_suffix_hyphen = local.org_id_suffix
 }
