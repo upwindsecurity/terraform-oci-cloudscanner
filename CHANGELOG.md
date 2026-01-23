@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.0...v1.2.1) (2026-01-23)
+
+### Bug Fixes
+
+* **AG-4358:** use secret data directly and use public uri ([#22](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/22)) ([c81b3e4](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/c81b3e4d40e830dad44ceab2ac5ba8bceec1a92d))
+
 ## [1.2.0](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.1.2...v1.2.0) (2026-01-23)
 
 ### Features
