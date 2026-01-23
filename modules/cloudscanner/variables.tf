@@ -40,16 +40,6 @@ variable "tenancy_id" {
   }
 }
 
-variable "upwind_vault_id" {
-  type        = string
-  description = "OCID of the existing OCI Vault that contains the Upwind OAuth secrets."
-
-  validation {
-    condition     = can(regex("^ocid1\\.vault\\..*", var.upwind_vault_id))
-    error_message = "upwind_vault_id must be a valid vault OCID starting with 'ocid1.vault.'."
-  }
-}
-
 variable "upwind_scanner_client_id_ocid" {
   type        = string
   description = "OCID of the secret containing the Upwind scanner client ID (from home region vault). Required because vault may not be accessible from deployment region."
