@@ -4,6 +4,8 @@ resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
   instance_configuration_id = oci_core_instance_configuration.cloudscanner_instance_configuration.id
   size                      = var.target_size
 
+  instance_display_name_formatter = "upwind-vm-${var.scanner_id}-$${launchCount}"
+
   dynamic "placement_configurations" {
     for_each = toset(local.availability_zones)
     content {
