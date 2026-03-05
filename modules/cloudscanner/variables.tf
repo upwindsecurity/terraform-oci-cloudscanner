@@ -115,6 +115,12 @@ variable "public_uri_domain" {
   default     = "upwind.io"
 }
 
+variable "disable_legacy_imds_endpoints" {
+  description = "Disable legacy IMDSv1 endpoints on CloudScanner instances. When true, only IMDSv2 endpoints are available."
+  type        = bool
+  default     = true
+}
+
 variable "extra_tags" {
   description = "Map of required tags to be applied to all resources"
   type        = map(string)

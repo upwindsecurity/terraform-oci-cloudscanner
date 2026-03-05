@@ -154,6 +154,10 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
     launch_details {
       compartment_id = var.compartment_id
 
+      instance_options {
+        are_legacy_imds_endpoints_disabled = var.disable_legacy_imds_endpoints
+      }
+
       shape         = local.selected_shape
       freeform_tags = local.freeform_tags
       dynamic "shape_config" {
