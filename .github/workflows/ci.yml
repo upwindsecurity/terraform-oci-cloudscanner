@@ -18,7 +18,7 @@ on:
 env:
   TERRAFORM_VERSION: 1.11.0
   TFLINT_VERSION: v0.48.0
-  TRIVY_VERSION: v0.63.0
+  TRIVY_VERSION: v0.69.2
 
 permissions:
   contents: read         # Required for checkout and reading repository content
