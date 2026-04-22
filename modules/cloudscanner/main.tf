@@ -19,6 +19,7 @@ resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
   freeform_tags = merge(local.freeform_tags, {
     Name = "upwind-cs-asg-${var.scanner_id}"
   })
+  defined_tags = local.validated_defined_tags
 
   lifecycle {
     replace_triggered_by = [null_resource.always_run]
@@ -160,6 +161,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
 
       shape         = local.selected_shape
       freeform_tags = local.freeform_tags
+      defined_tags  = local.validated_defined_tags
       dynamic "shape_config" {
         for_each = local.is_flexible_shape ? [1] : []
         content {

@@ -127,6 +127,12 @@ variable "extra_tags" {
   default     = {}
 }
 
+variable "defined_tags" {
+  description = "A map of defined tags (namespace-qualified) to apply to all resources. The tag namespace and tags must already exist in your OCI tenancy. Example: {\"mandatory_tags.Environment\" = \"prod\"}"
+  type        = map(string)
+  default     = {}
+}
+
 variable "shape" {
   description = "Shape of the Cloudscanner worker VM"
   type        = string
@@ -170,4 +176,12 @@ locals {
   is_flexible_shape = contains(split(".", lower(var.shape)), "flex")
 
   freeform_tags = merge(local.default_freeform_tags, var.extra_tags)
+
+  # Defined tags validation (namespace-qualified, e.g., "mandatory_tags.Environment")
+  # Keys must be in format "namespace.key" where both parts are 1-100 characters
+  # Values must be 0-256 characters (OCI defined tag value limit)
+  validated_defined_tags = {
+    for k, v in var.defined_tags : k => v
+    if can(regex("^[a-zA-Z0-9_.-]{1,100}\\.[a-zA-Z0-9_.-]{1,100}$", k)) && length(v) <= 256
+  }
 }

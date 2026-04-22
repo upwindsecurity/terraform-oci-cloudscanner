@@ -14,6 +14,7 @@ resource "oci_core_vcn" "cloudscanner_vcn" {
   display_name = "${var.scanner_id}-VCN"
 
   freeform_tags = local.freeform_tags
+  defined_tags  = local.validated_defined_tags
   dns_label     = local.scanner_dns_label
 }
 
@@ -28,6 +29,7 @@ resource "oci_core_subnet" "cloudscanner_regional_subnet" {
   dns_label                  = local.scanner_dns_label
 
   freeform_tags  = local.freeform_tags
+  defined_tags   = local.validated_defined_tags
   route_table_id = oci_core_route_table.cloudscanner_route_tables.id
 }
 
@@ -44,6 +46,7 @@ resource "oci_core_route_table" "cloudscanner_route_tables" {
   }
 
   freeform_tags = local.freeform_tags
+  defined_tags  = local.validated_defined_tags
   display_name  = "${var.scanner_id}-CoreRouteTable"
 }
 
@@ -54,6 +57,7 @@ resource "oci_core_nat_gateway" "cloudscanner_nat" {
   vcn_id         = oci_core_vcn.cloudscanner_vcn.id
 
   freeform_tags = local.freeform_tags
+  defined_tags  = local.validated_defined_tags
   display_name  = "${var.scanner_id}-NATGateway"
 }
 
@@ -97,5 +101,6 @@ resource "oci_core_security_list" "cloudscanner_security_list" {
   }
 
   freeform_tags = local.freeform_tags
+  defined_tags  = local.validated_defined_tags
 }
 
