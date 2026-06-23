@@ -94,11 +94,11 @@ variable "upwind_org_id" {
 
 variable "upwind_region" {
   type        = string
-  description = "Which Upwind region to communicate with. 'us', 'eu', 'me', 'pdc01'"
+  description = "Which Upwind region to communicate with. 'us', 'eu', 'ap', 'me', 'pdc01'"
   default     = "us"
 
   validation {
-    condition     = var.upwind_region == "us" || var.upwind_region == "eu" || var.upwind_region == "me" || var.upwind_region == "pdc01"
+    condition     = var.upwind_region == "us" || var.upwind_region == "ap" || var.upwind_region == "eu" || var.upwind_region == "me" || var.upwind_region == "pdc01"
     error_message = "upwind_region must be either 'us' or 'eu' or 'me' or 'pdc01'."
   }
 }
