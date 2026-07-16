@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.3](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.2...v1.2.3) (2026-03-05)
+
+### Bug Fixes
+
+* **AG-4707:** disable legacy IMDSv1 endpoints by default ([#27](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/27)) ([bbfd6cb](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/bbfd6cbc8edc690780f405c15f46e9e1b92bd165))
+
 ## [1.2.2](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.1...v1.2.2) (2026-01-30)
 
 ### Bug Fixes
