@@ -60,7 +60,7 @@ The 8-character suffix after the last 5 characters can be any value - the module
 | `account_user` | The Service Account User required for image scans. | `string` | n/a | yes |
 | `scanner_id` | The Upwind Scanner ID. | `string` | n/a | yes |
 | `upwind_org_id` | The Upwind Organization ID. The last 5 characters (lowercase) are used as a prefix to match vault secrets. | `string` | n/a | yes |
-| `upwind_region` | Which Upwind region to communicate with: `us`, `eu`, `ap`, `me`, `pdc01`, or `pdc02`. | `string` | `us` | no |
+| `upwind_region` | Which Upwind region to communicate with: `us`, `eu`, `ap`, `me`, or `pdcXX` (e.g. `pdc02`). | `string` | `us` | no |
 | `target_size` | Target size of the instance pool. | `number` | `10` | no |
 | `public_uri_domain` | The public URI domain. | `string` | `upwind.io` | no |
 | `extra_tags` | Map of tags applied to resources. | `map(string)` | `{}` | no |
