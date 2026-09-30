@@ -58,6 +58,11 @@ jobs:
       run: terraform validate
       working-directory: modules/${{ matrix.module }}
 
+    - name: Run Terraform Test
+      if: hashFiles(format('modules/{0}/tests/*.tftest.hcl', matrix.module)) != ''
+      run: terraform test
+      working-directory: modules/${{ matrix.module }}
+
   terraform-tflint:
     name: Terraform Lint (${{ matrix.module }})
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-.PHONY: help init fmt docs pre-commit test-validate test-format test-lint test-security test test-all test-module test-examples clean install-tools setup
+.PHONY: help init fmt docs pre-commit test-validate test-format test-lint test-security test-unit test test-all test-module test-examples clean install-tools setup
 
 # Default target
 help: ## Show this help message
@@ -61,7 +61,15 @@ test-lint: ## Run linting tests
 test-security: ## Run security tests
 	trivy config .
 
-test: test-validate test-format test-lint ## Run basic tests
+test-unit: ## Run Terraform unit tests (terraform test) for modules with a tests/ directory
+	@for module in modules/*/; do \
+		if [ -d "$$module/tests" ]; then \
+			echo "Running unit tests for $$module"; \
+			(cd $$module && terraform init -backend=false -input=false >/dev/null && terraform test) || exit 1; \
+		fi; \
+	done
+
+test: test-validate test-format test-lint test-unit ## Run basic tests
 
 test-all: test test-security ## Run all tests including security scan
 
