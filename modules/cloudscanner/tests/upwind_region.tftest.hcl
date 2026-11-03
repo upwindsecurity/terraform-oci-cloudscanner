@@ -84,6 +84,16 @@ run "accepts_me" {
   }
 }
 
+run "accepts_au" {
+  command = plan
+  variables { upwind_region = "au" }
+
+  assert {
+    condition     = strcontains(base64decode(oci_core_instance_configuration.cloudscanner_instance_configuration.instance_details[0].launch_details[0].metadata.user_data), "UPWIND_INFRA_REGION=au ")
+    error_message = "upwind_region 'au' was not passed to the startup script"
+  }
+}
+
 run "accepts_pdc01" {
   command = plan
   variables { upwind_region = "pdc01" }
