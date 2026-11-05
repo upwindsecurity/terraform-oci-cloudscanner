@@ -62,6 +62,28 @@ variable "upwind_scanner_client_secret" {
   }
 }
 
+variable "vcn_id" {
+  type        = string
+  description = "OCID of an existing VCN to deploy CloudScanner into (bring-your-own-network mode). Leave empty to let the module create and manage its own VCN. Setting both vcn_id and subnet_id switches the module to bring-your-own-network mode, in which it creates no VCN, subnet, route table, NAT gateway or security list."
+  default     = ""
+
+  validation {
+    condition     = var.vcn_id == "" || can(regex("^ocid1\\.vcn\\..*", var.vcn_id))
+    error_message = "The vcn_id must be empty or a valid VCN OCID starting with 'ocid1.vcn.'"
+  }
+}
+
+variable "subnet_id" {
+  type        = string
+  description = "OCID of an existing subnet to place CloudScanner instances in (bring-your-own-network mode). Leave empty to let the module create and manage its own subnet. Setting both vcn_id and subnet_id switches the module to bring-your-own-network mode, in which it creates no VCN, subnet, route table, NAT gateway or security list. The provided subnet must belong to vcn_id."
+  default     = ""
+
+  validation {
+    condition     = var.subnet_id == "" || can(regex("^ocid1\\.subnet\\..*", var.subnet_id))
+    error_message = "The subnet_id must be empty or a valid subnet OCID starting with 'ocid1.subnet.'"
+  }
+}
+
 variable "object_namespace" {
   type        = string
   description = "The object namespace associated with the tenancy"

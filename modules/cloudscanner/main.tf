@@ -11,7 +11,7 @@ resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
     content {
       availability_domain = placement_configurations.value
       primary_vnic_subnets {
-        subnet_id = oci_core_subnet.cloudscanner_regional_subnet.id
+        subnet_id = local.effective_subnet_id
       }
     }
   }
@@ -148,9 +148,9 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   freeform_tags  = local.freeform_tags
   defined_tags   = local.validated_defined_tags
 
-  depends_on = [
-    oci_core_subnet.cloudscanner_regional_subnet,
-  ]
+  # No explicit depends_on on the managed subnet: in managed mode the dependency
+  # is created implicitly via local.effective_subnet_id (which references the
+  # subnet), and in bring-your-own-network mode that resource has count = 0.
 
   instance_details {
     instance_type = "compute"
@@ -178,7 +178,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
         boot_volume_size_in_gbs = var.boot_volume_size
       }
       create_vnic_details {
-        subnet_id        = oci_core_subnet.cloudscanner_regional_subnet.id
+        subnet_id        = local.effective_subnet_id
         assign_public_ip = false
       }
 
@@ -214,6 +214,18 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   lifecycle {
     replace_triggered_by  = [null_resource.always_run]
     create_before_destroy = true
+    # Bring-your-own-network: vcn_id and subnet_id must be set together.
+    precondition {
+      condition     = (var.subnet_id == "") == (var.vcn_id == "")
+      error_message = "vcn_id and subnet_id must be set together to enable bring-your-own-network mode, or both left empty to use the module-managed network."
+    }
+    # Bring-your-own-network: the provided subnet must belong to the provided VCN.
+    # try() keeps the index safe in managed mode, where the data source has
+    # count = 0 and the index is evaluated (not short-circuited) on older Terraform.
+    precondition {
+      condition     = var.subnet_id == "" || try(data.oci_core_subnet.provided[0].vcn_id, null) == var.vcn_id
+      error_message = "The provided subnet_id does not belong to vcn_id. Ensure subnet_id references a subnet within the VCN given by vcn_id."
+    }
     precondition {
       condition     = local.image_id != null
       error_message = "No matching Ubuntu 22.04 image found for shape ${var.shape} in region ${var.oracle_region}."

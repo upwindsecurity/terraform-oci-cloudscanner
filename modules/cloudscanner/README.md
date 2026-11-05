@@ -3,6 +3,9 @@
 ## Overview
 Terraform module to deploy Upwind CloudScanner resources into Oracle Cloud Infrastructure (OCI). Creates networking (VCN, subnet, NAT, route table, security list), instance configuration and instance pool, KMS vault/key and a secret to store Upwind credentials.
 
+### Bring-your-own-network (custom VCN)
+By default the module creates and manages its own network (VCN, subnet, route table, NAT gateway, security list). To deploy into a network you own instead, set both `vcn_id` and `subnet_id`. In this bring-your-own-network mode the module creates **none** of those five network resources and places the CloudScanner instances in the subnet you provide. You are then responsible for the subnet's routing and egress (for example a NAT or service gateway for outbound access). The provided subnet must belong to the provided VCN; this is validated at plan time.
+
 ## Requirements
 
 | Name | Version |
@@ -25,11 +28,11 @@ No modules.
 ## Resources
 Key resources created by this module:
 
-- `oci_core_vcn.cloudscanner_vcn` - Virtual Cloud Network
-- `oci_core_subnet.cloudscanner_regional_subnet` - Regional subnet
-- `oci_core_route_table.cloudscanner_route_tables` - Route table with NAT gateway route
-- `oci_core_nat_gateway.cloudscanner_nat` - NAT gateway for private outbound traffic
-- `oci_core_security_list.cloudscanner_security_list` - Security list (firewall rules)
+- `oci_core_vcn.cloudscanner_vcn` - Virtual Cloud Network *(managed-network mode only)*
+- `oci_core_subnet.cloudscanner_regional_subnet` - Regional subnet *(managed-network mode only)*
+- `oci_core_route_table.cloudscanner_route_tables` - Route table with NAT gateway route *(managed-network mode only)*
+- `oci_core_nat_gateway.cloudscanner_nat` - NAT gateway for private outbound traffic *(managed-network mode only)*
+- `oci_core_security_list.cloudscanner_security_list` - Security list (firewall rules), attached to the subnet *(managed-network mode only)*
 - `oci_core_instance_configuration.cloudscanner_instance_configuration` - Instance configuration
 - `oci_core_instance_pool.cloudscanner_instance_pool` - Auto-scaling instance pool
 - `null_resource.always_run` - Trigger for lifecycle management
@@ -55,6 +58,8 @@ The 8-character suffix after the last 5 characters can be any value - the module
 | `availability_zones` | The zones within the region that will be used. If not provided, all availability domains in the region will be used. | `list(any)` | `[]` | no |
 | `compartment_id` | The root compartment where CloudScanner is deployed. | `string` | n/a | yes |
 | `tenancy_id` | The OCI tenancy OCID for querying platform images. If not provided, compartment_id will be used. | `string` | `""` | no |
+| `vcn_id` | OCID of an existing VCN to deploy into (bring-your-own-network mode). Set together with `subnet_id`; leave empty for the module-managed network. | `string` | `""` | no |
+| `subnet_id` | OCID of an existing subnet to place instances in (bring-your-own-network mode). Set together with `vcn_id`; must belong to `vcn_id`. Leave empty for the module-managed network. | `string` | `""` | no |
 | `upwind_vault_id` | OCID of the existing OCI Vault that contains the Upwind OAuth secrets. | `string` | n/a | yes |
 | `object_namespace` | The object namespace associated with the tenancy. | `string` | n/a | yes |
 | `account_user` | The Service Account User required for image scans. | `string` | n/a | yes |
