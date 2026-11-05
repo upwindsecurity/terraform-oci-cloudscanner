@@ -220,8 +220,10 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
       error_message = "vcn_id and subnet_id must be set together to enable bring-your-own-network mode, or both left empty to use the module-managed network."
     }
     # Bring-your-own-network: the provided subnet must belong to the provided VCN.
+    # try() keeps the index safe in managed mode, where the data source has
+    # count = 0 and the index is evaluated (not short-circuited) on older Terraform.
     precondition {
-      condition     = var.subnet_id == "" || (length(data.oci_core_subnet.provided) > 0 && data.oci_core_subnet.provided[0].vcn_id == var.vcn_id)
+      condition     = var.subnet_id == "" || try(data.oci_core_subnet.provided[0].vcn_id, null) == var.vcn_id
       error_message = "The provided subnet_id does not belong to vcn_id. Ensure subnet_id references a subnet within the VCN given by vcn_id."
     }
     precondition {
