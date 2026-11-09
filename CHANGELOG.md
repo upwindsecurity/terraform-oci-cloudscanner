@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.3.1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.3.0...v1.3.1) (2026-05-05)
+
+### Bug Fixes
+
+* **UP-0:** add missing tags fields for oci_core_instance_configuration ([#33](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/33)) ([adf7f79](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/adf7f79345291c6cc402a0b8c6d55399819cdcf7))
+
 ## [1.2.2](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.1...v1.2.2) (2026-01-30)
 
 ### Bug Fixes
