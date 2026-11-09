@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.3.0](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.3...v1.3.0) (2026-04-22)
+
+### Features
+
+* **AG-8612:** add defined_tags support for OCI mandatory tag namespaces ([#31](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/31)) ([aae4fd0](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/aae4fd0938ec47cecbdf104af9abb3f107666ca7))
+
 ## [1.2.2](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.1...v1.2.2) (2026-01-30)
 
 ### Bug Fixes
