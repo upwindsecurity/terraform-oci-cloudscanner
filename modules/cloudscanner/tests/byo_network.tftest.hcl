@@ -1,4 +1,4 @@
-# Tests for bring-your-own-network mode (var.vcn_id / var.subnet_id).
+# Tests for bring-your-own-network mode (var.create_network / vcn_id / subnet_id).
 # Providers are mocked and every run is a plan, so no OCI credentials are needed.
 
 mock_provider "oci" {
@@ -43,7 +43,7 @@ variables {
   upwind_org_id                = "org_test"
 }
 
-# --- Managed mode (default): module creates its own network ---
+# --- Managed mode (default, create_network = true): module creates its network ---
 
 run "managed_mode_creates_network_resources" {
   command = plan
@@ -68,8 +68,8 @@ run "managed_mode_creates_network_resources" {
     condition     = length(oci_core_security_list.cloudscanner_security_list) == 1
     error_message = "Managed mode must create exactly one security list"
   }
-  # The B1 fix: the custom security list must be explicitly attached to the
-  # subnet (exactly one entry) rather than falling back to the VCN default list.
+  # The custom security list must be explicitly attached to the subnet (exactly
+  # one entry) rather than falling back to the all-allow VCN default list.
   assert {
     condition     = length(oci_core_subnet.cloudscanner_regional_subnet[0].security_list_ids) == 1
     error_message = "Managed subnet must attach exactly the module's custom security list"
@@ -85,8 +85,9 @@ run "managed_mode_creates_network_resources" {
 run "byo_mode_creates_no_network_resources" {
   command = plan
   variables {
-    vcn_id    = "ocid1.vcn.oc1..mockvcn"
-    subnet_id = "ocid1.subnet.oc1..provided"
+    create_network = false
+    vcn_id         = "ocid1.vcn.oc1..mockvcn"
+    subnet_id      = "ocid1.subnet.oc1..provided"
   }
 
   assert {
@@ -109,10 +110,15 @@ run "byo_mode_creates_no_network_resources" {
     condition     = length(oci_core_security_list.cloudscanner_security_list) == 0
     error_message = "BYO mode must not create a security list"
   }
-  # Instances must be placed in the provided subnet.
+  # Instances must be placed in the provided subnet, in both places the subnet is
+  # wired in: the instance configuration's VNIC and the instance pool placement.
   assert {
     condition     = oci_core_instance_configuration.cloudscanner_instance_configuration.instance_details[0].launch_details[0].create_vnic_details[0].subnet_id == "ocid1.subnet.oc1..provided"
-    error_message = "BYO mode must place instances in the provided subnet"
+    error_message = "BYO mode must place the instance configuration VNIC in the provided subnet"
+  }
+  assert {
+    condition     = oci_core_instance_pool.cloudscanner_instance_pool.placement_configurations[0].primary_vnic_subnets[0].subnet_id == "ocid1.subnet.oc1..provided"
+    error_message = "BYO mode must place the instance pool in the provided subnet"
   }
 }
 
@@ -121,18 +127,20 @@ run "byo_mode_creates_no_network_resources" {
 run "byo_mode_rejects_subnet_in_wrong_vcn" {
   command = plan
   variables {
-    vcn_id    = "ocid1.vcn.oc1..differentvcn"
-    subnet_id = "ocid1.subnet.oc1..provided"
+    create_network = false
+    vcn_id         = "ocid1.vcn.oc1..differentvcn"
+    subnet_id      = "ocid1.subnet.oc1..provided"
   }
   expect_failures = [oci_core_instance_configuration.cloudscanner_instance_configuration]
 }
 
-# --- Validation: vcn_id and subnet_id must be set together ---
+# --- Validation: create_network = false requires both subnet_id and vcn_id ---
 
 run "byo_mode_rejects_subnet_without_vcn" {
   command = plan
   variables {
-    subnet_id = "ocid1.subnet.oc1..provided"
+    create_network = false
+    subnet_id      = "ocid1.subnet.oc1..provided"
   }
   expect_failures = [oci_core_instance_configuration.cloudscanner_instance_configuration]
 }
@@ -140,7 +148,28 @@ run "byo_mode_rejects_subnet_without_vcn" {
 run "byo_mode_rejects_vcn_without_subnet" {
   command = plan
   variables {
-    vcn_id = "ocid1.vcn.oc1..mockvcn"
+    create_network = false
+    vcn_id         = "ocid1.vcn.oc1..mockvcn"
+  }
+  expect_failures = [oci_core_instance_configuration.cloudscanner_instance_configuration]
+}
+
+run "byo_mode_rejects_create_network_false_with_no_network" {
+  command = plan
+  variables {
+    create_network = false
+  }
+  expect_failures = [oci_core_instance_configuration.cloudscanner_instance_configuration]
+}
+
+# --- Validation: create_network = true (managed) rejects a provided network ---
+
+run "managed_mode_rejects_provided_subnet" {
+  command = plan
+  variables {
+    create_network = true
+    vcn_id         = "ocid1.vcn.oc1..mockvcn"
+    subnet_id      = "ocid1.subnet.oc1..provided"
   }
   expect_failures = [oci_core_instance_configuration.cloudscanner_instance_configuration]
 }
@@ -150,8 +179,9 @@ run "byo_mode_rejects_vcn_without_subnet" {
 run "rejects_invalid_subnet_ocid" {
   command = plan
   variables {
-    vcn_id    = "ocid1.vcn.oc1..mockvcn"
-    subnet_id = "not-an-ocid"
+    create_network = false
+    vcn_id         = "ocid1.vcn.oc1..mockvcn"
+    subnet_id      = "not-an-ocid"
   }
   expect_failures = [var.subnet_id]
 }
@@ -159,8 +189,9 @@ run "rejects_invalid_subnet_ocid" {
 run "rejects_invalid_vcn_ocid" {
   command = plan
   variables {
-    vcn_id    = "not-an-ocid"
-    subnet_id = "ocid1.subnet.oc1..provided"
+    create_network = false
+    vcn_id         = "not-an-ocid"
+    subnet_id      = "ocid1.subnet.oc1..provided"
   }
   expect_failures = [var.vcn_id]
 }
