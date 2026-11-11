@@ -11,7 +11,7 @@ resource "oci_core_instance_pool" "cloudscanner_instance_pool" {
     content {
       availability_domain = placement_configurations.value
       primary_vnic_subnets {
-        subnet_id = oci_core_subnet.cloudscanner_regional_subnet.id
+        subnet_id = local.effective_subnet_id
       }
     }
   }
@@ -148,10 +148,6 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   freeform_tags  = local.freeform_tags
   defined_tags   = local.validated_defined_tags
 
-  depends_on = [
-    oci_core_subnet.cloudscanner_regional_subnet,
-  ]
-
   instance_details {
     instance_type = "compute"
     launch_details {
@@ -178,7 +174,7 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
         boot_volume_size_in_gbs = var.boot_volume_size
       }
       create_vnic_details {
-        subnet_id        = oci_core_subnet.cloudscanner_regional_subnet.id
+        subnet_id        = local.effective_subnet_id
         assign_public_ip = false
       }
 
@@ -214,6 +210,21 @@ resource "oci_core_instance_configuration" "cloudscanner_instance_configuration"
   lifecycle {
     replace_triggered_by  = [null_resource.always_run]
     create_before_destroy = true
+    # Network mode: create_network must agree with whether an existing network is
+    # provided. create_network = true (managed) requires subnet_id and vcn_id empty;
+    # create_network = false (bring-your-own-network) requires both to be set.
+    precondition {
+      condition     = var.create_network ? (var.subnet_id == "" && var.vcn_id == "") : (var.subnet_id != "" && var.vcn_id != "")
+      error_message = "Set create_network = false and provide BOTH subnet_id and vcn_id to deploy into an existing network, or keep create_network = true (the default) with subnet_id and vcn_id empty to let the module manage its own network."
+    }
+    # Bring-your-own-network: the provided subnet must belong to the provided VCN.
+    # try() keeps the index safe when no subnet is provided (data source count = 0);
+    # when subnet_id is computed in the same apply it is unknown here, so the
+    # comparison is unknown and the check simply defers to apply.
+    precondition {
+      condition     = var.subnet_id == "" || try(data.oci_core_subnet.provided[0].vcn_id, null) == var.vcn_id
+      error_message = "The provided subnet_id does not belong to vcn_id. Ensure subnet_id references a subnet within the VCN given by vcn_id."
+    }
     precondition {
       condition     = local.image_id != null
       error_message = "No matching Ubuntu 22.04 image found for shape ${var.shape} in region ${var.oracle_region}."
