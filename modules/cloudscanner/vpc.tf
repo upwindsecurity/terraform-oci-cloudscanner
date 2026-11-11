@@ -14,10 +14,12 @@ locals {
 }
 
 # Lookup of the caller-provided subnet, used to validate it belongs to var.vcn_id.
-# Queried whenever a subnet_id is provided; gated on subnet_id (not create_network)
-# so it never indexes an unused resource.
+# Gated on the create_network bool (not on subnet_id) so the count stays known at
+# plan time even when subnet_id is a value computed in the same apply; in
+# bring-your-own-network mode (create_network = false) a non-empty subnet_id is
+# guaranteed by the precondition in main.tf.
 data "oci_core_subnet" "provided" {
-  count     = var.subnet_id != "" ? 1 : 0
+  count     = var.create_network ? 0 : 1
   subnet_id = var.subnet_id
 }
 
