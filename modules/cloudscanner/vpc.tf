@@ -49,10 +49,6 @@ resource "oci_core_subnet" "cloudscanner_regional_subnet" {
   freeform_tags  = local.freeform_tags
   defined_tags   = local.validated_defined_tags
   route_table_id = oci_core_route_table.cloudscanner_route_tables[0].id
-  # Attach the module's custom security list. Without this the subnet would fall
-  # back to the VCN default security list (all-allow egress), leaving the custom
-  # egress rules below orphaned.
-  security_list_ids = [oci_core_security_list.cloudscanner_security_list[0].id]
 }
 
 # Route tables (Contains the IGW, NAT, SG rules)
