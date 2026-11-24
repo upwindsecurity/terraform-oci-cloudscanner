@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.6.1](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.6.0...v1.6.1) (2026-11-24)
+
+### Bug Fixes
+
+* **UP-16009:** don't attach custom security list to managed subnet ([#46](https://github.com/upwindsecurity/terraform-oci-cloudscanner/issues/46)) ([98efe1c](https://github.com/upwindsecurity/terraform-oci-cloudscanner/commit/98efe1cde6cf630bda40a436d4dceefaa112cc48))
+
 ## [1.2.2](https://github.com/upwindsecurity/terraform-oci-cloudscanner/compare/v1.2.1...v1.2.2) (2026-01-30)
 
 ### Bug Fixes
